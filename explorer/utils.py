@@ -82,11 +82,14 @@ def schema_info():
 
             #Do the same thing for many_to_many fields. These don't show up in the field list of the model
             #because they are stored as separate "through" relations and have their own tables
-            ret += [(
-                       friendly_model,
-                       m2m.rel.through._meta.db_table,
-                       [_format_field(f) for f in m2m.rel.through._meta.fields]
-                    ) for m2m in model._meta.many_to_many]
+
+            # XXX For reasons unknown, gives a NoneType error
+
+            #ret += [(
+            #           friendly_model,
+            #           m2m.rel.through._meta.db_table,
+            #           [_format_field(f) for f in m2m.rel.through._meta.fields]
+            #        ) for m2m in model._meta.many_to_many]
 
     return sorted(ret, key=lambda t: t[1])  # sort by table name
 
