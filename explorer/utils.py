@@ -6,6 +6,7 @@ import re
 from time import time
 from explorer import app_settings
 from django.db import connections, connection, models, transaction, DatabaseError
+import importlib
 
 EXPLORER_PARAM_TOKEN = "$$"
 
@@ -34,11 +35,22 @@ def execute_query(sql):
     return cursor, duration
 
 
-def execute_and_fetch_query(sql):
-    cursor, duration = execute_query(sql)
+def execute_and_fetch_query(query):
+    cursor, duration = execute_query(query.final_sql())
     headers = [d[0] for d in cursor.description] if cursor.description else ['--']
     transforms = get_transforms(headers, app_settings.EXPLORER_TRANSFORMS)
     data = [transform_row(transforms, r) for r in cursor.fetchall()]
+
+    if app_settings.EXPLORER_TRANSFORM_MODULE:
+      try:
+
+        # Ability to modify the results with full python control, can use the slug as the identifier to target specific queries
+        module = importlib.import_module(app_settings.EXPLORER_TRANSFORM_MODULE)
+        function = getattr(module, 'transform')
+        function(query, headers, data)
+      except ImportError:
+        pass
+
     return headers, data, duration, None
 
 

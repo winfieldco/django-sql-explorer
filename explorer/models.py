@@ -7,6 +7,7 @@ MSG_FAILED_BLACKLIST = "Query failed the SQL blacklist."
 
 class Query(models.Model):
     title = models.CharField(max_length=255)
+    slug = models.SlugField(null=True, blank=True)
     sql = models.TextField()
     description = models.TextField(null=True, blank=True)
     created_by = models.CharField(max_length=255, null=True, blank=True)
@@ -47,7 +48,7 @@ class Query(models.Model):
         if not self.passes_blacklist():
             return [], [], None, MSG_FAILED_BLACKLIST
         try:
-            return execute_and_fetch_query(self.final_sql())
+            return execute_and_fetch_query(self)
         except (DatabaseError, Warning), e:
             return [], [], None, str(e)
 
